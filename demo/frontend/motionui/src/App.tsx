@@ -1,39 +1,57 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState } from 'react';
+import { Menu } from "lucide-react";
 import GoldenLayoutWrapper from './components/GoldenLayoutWrapper';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-    <div className="bg-gray-100 min-h-screen p-6">
-      <h1 className="text-3xl font-bold text-blue-600">Tailwind fonctionne.</h1>
-    </div>
-    <div className="w-full h-screen">
-      <GoldenLayoutWrapper />
-    </div>
-    </>
-  )
-}
+    <div className="flex flex-col h-screen w-screen">
+      {/* Header */}
+      <header className="flex items-center justify-between bg-gray-800 text-white p-4 shadow-md">
+        <div className="flex items-center">
+          <button
+            aria-label="Toggle sidebar"
+            className="mr-4 focus:outline-none"
+            onClick={() => setSidebarOpen(open => !open)}
+          >
+            <Menu className="h-6 w-6" />
 
-export default App
+          </button>
+          <h1 className="text-xl font-semibold">Industrial Dashboard</h1>
+        </div>
+        {/* You can add user menu or right-side actions here */}
+      </header>
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <aside
+          className={`bg-gray-100 border-r transition-transform duration-300 ease-in-out overflow-auto ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } w-64`}
+        >
+          <nav className="p-4">
+            <ul className="space-y-2">
+              <li>
+                <button className="w-full text-left p-2 rounded hover:bg-gray-200">
+                  Widget Texte
+                </button>
+              </li>
+              <li>
+                <button className="w-full text-left p-2 rounded hover:bg-gray-200">
+                  Widget uPlot
+                </button>
+              </li>
+              {/* Add additional widget controls here */}
+            </ul>
+          </nav>
+        </aside>
+
+        {/* Main content (Golden Layout) */}
+        <main className="flex-1 relative">
+          <GoldenLayoutWrapper />
+        </main>
+      </div>
+    </div>
+  );
+}

@@ -5,68 +5,67 @@ import UPlotWidget from './UPlotWidget';
 
 import 'golden-layout/dist/css/goldenlayout-base.css';
 import 'golden-layout/dist/css/themes/goldenlayout-dark-theme.css';
-// import '../golden-custom.css'; // si vous l'avez ajouté plus tard
 
 function HelloWidget() {
-    return <div className="p-4 text-white bg-blue-600">Bonjour depuis React + Golden Layout</div>;
+  return <div className="p-4 text-white bg-blue-600">Bonjour depuis React + Golden Layout</div>;
 }
 
 const reactComponentRegistry: Record<string, React.FC> = {
-    HelloWidget,
-    UPlotWidget,
+  HelloWidget,
+  UPlotWidget,
 };
 
 export default function GoldenLayoutWrapper() {
-    const containerRef = useRef<HTMLDivElement | null>(null);
-    const layoutRef = useRef<GoldenLayout | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const layoutRef = useRef<GoldenLayout | null>(null);
 
-    useEffect(() => {
-        if (!containerRef.current) return;
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-        const layout = new GoldenLayout(containerRef.current);
-        layoutRef.current = layout;
+    const layout = new GoldenLayout(containerRef.current);
+    layoutRef.current = layout;
 
-        layout.registerComponentFactoryFunction('HelloWidget', (container, state) => {
-            const mount = document.createElement('div');
-            container.element.append(mount);
+    layout.registerComponentFactoryFunction('HelloWidget', (container, state) => {
+      const mount = document.createElement('div');
+      container.element.append(mount);
 
-            const Component = reactComponentRegistry['HelloWidget'];
-            if (Component) {
-                createRoot(mount).render(<Component />);
-            }
-        });
-        layout.registerComponentFactoryFunction('UPlotWidget', (container, state) => {
-            const mount = document.createElement('div');
-            container.element.append(mount);
+      const Component = reactComponentRegistry['HelloWidget'];
+      if (Component) {
+        createRoot(mount).render(<Component />);
+      }
+    });
+    layout.registerComponentFactoryFunction('UPlotWidget', (container, state) => {
+      const mount = document.createElement('div');
+      container.element.append(mount);
 
-            const Component = reactComponentRegistry['UPlotWidget'];
-            if (Component) {
-                createRoot(mount).render(<Component />);
-            }
-        });
+      const Component = reactComponentRegistry['UPlotWidget'];
+      if (Component) {
+        createRoot(mount).render(<Component />);
+      }
+    });
 
-        layout.loadLayout({
-            root: {
-                type: 'row',
-                content: [
-                    {
-                        type: 'component',
-                        componentType: 'HelloWidget',
-                        title: 'Widget',
-                    },
-                    {
-                        type: 'component',
-                        componentType: 'UPlotWidget',
-                        title: 'uPlot',
-                    },
-                ],
-            },
-        });
+    layout.loadLayout({
+      root: {
+        type: 'row',
+        content: [
+          {
+            type: 'component',
+            componentType: 'HelloWidget',
+            title: 'Widget',
+          },
+          {
+            type: 'component',
+            componentType: 'UPlotWidget',
+            title: 'uPlot',
+          },
+        ],
+      },
+    });
 
-        return () => {
-            layout.destroy();
-        };
-    }, []);
+    return () => {
+      layout.destroy();
+    };
+  }, []);
 
-    return <div ref={containerRef} className="h-screen w-full" />;
+  return <div ref={containerRef} className="h-screen w-full" />;
 }
