@@ -15,7 +15,11 @@ const reactComponentRegistry: Record<string, React.FC> = {
   UPlotWidget,
 };
 
-export default function GoldenLayoutWrapper() {
+export default function GoldenLayoutWrapper({
+  onReady,
+}: {
+  onReady?: (layout: GoldenLayout) => void;
+}) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const layoutRef = useRef<GoldenLayout | null>(null);
 
@@ -23,6 +27,10 @@ export default function GoldenLayoutWrapper() {
     if (!containerRef.current) return;
 
     const layout = new GoldenLayout(containerRef.current);
+
+    if (onReady) {
+      onReady(layout);
+    }
     layoutRef.current = layout;
 
     layout.registerComponentFactoryFunction('HelloWidget', (container, state) => {
@@ -45,6 +53,11 @@ export default function GoldenLayoutWrapper() {
     });
 
     layout.loadLayout({
+      settings: {
+        showPopoutIcon: false, // Supprime "Open in new window"
+        showCloseIcon: true,
+        showMaximiseIcon: true,
+      },
       root: {
         type: 'row',
         content: [
