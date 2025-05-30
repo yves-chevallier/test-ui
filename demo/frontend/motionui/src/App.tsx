@@ -14,8 +14,8 @@ export default function App() {
   };
 
   const ws = useWebSocket();
-  ws.connect('ws://localhost:8000');
-  ws.onMessage(data => console.log('Received:', data));
+  //   ws.connect('ws://localhost:8000');
+  //   ws.onMessage(data => console.log('Received:', data));
 
   return (
     <Layout

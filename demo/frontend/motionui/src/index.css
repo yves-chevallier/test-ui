@@ -117,3 +117,7 @@ button:focus-visible {
 .dockview-theme-tailwind .dv-tab {
   color: var(--muted-foreground);
 }
+
+.u-label {
+  color: var(--muted-foreground);
+}

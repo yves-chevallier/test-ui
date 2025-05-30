@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useContext } from 'react';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
-
+import { cssVarToHex } from '@/lib';
 import { Play, Pause, ZoomIn, ArrowDownUp, MoveDiagonal, ScanSearch } from 'lucide-react';
 import { type LucideIcon, LineChart } from 'lucide-react';
 import { type FC } from 'react';
+import { ThemeContext } from '@/theme/ThemeProvider';
 
 const xyMinMax = (arr: number[]) => [Math.min(...arr), Math.max(...arr)] as [number, number];
 
@@ -17,6 +18,9 @@ export function UPlotWidget() {
   const [data, setData] = useState<[number[], number[]]>([[], []]);
 
   const MAX_POINTS = 1_000;
+
+  const themeContext = useContext(ThemeContext);
+
   useEffect(() => {
     let start = performance.now();
     let rafId: number;
@@ -41,17 +45,31 @@ export function UPlotWidget() {
 
     const [x, y] = data;
     const width = containerRef.current.clientWidth;
+    const height = containerRef.current.clientHeight;
 
     if (!plotRef.current) {
+      const axisColor = cssVarToHex('--foreground');
+      const gridColor = cssVarToHex('--border');
+
+      console.log('width', width, 'height', height, 'data length', x.length);
+
       const opts = {
         width,
-        height: 300,
+        height: 800,
         scales: { x: { time: false }, y: {} },
         axes: [
-          { stroke: 'white', grid: { stroke: '#444' }, ticks: { stroke: 'white' } },
-          { stroke: 'white', grid: { stroke: '#444' }, ticks: { stroke: 'white' } },
+          {
+            stroke: axisColor,
+            grid: { stroke: gridColor },
+            ticks: { stroke: axisColor },
+          },
+          {
+            stroke: axisColor,
+            grid: { stroke: gridColor },
+            ticks: { stroke: axisColor },
+          },
         ],
-        series: [{}, { label: 'Signal', stroke: '#80cbc4', width: 2 }],
+        series: [{}, { label: 'Signal', stroke: cssVarToHex('--chart-1'), width: 2 }],
         plugins: [
           {
             hooks: {
@@ -76,7 +94,7 @@ export function UPlotWidget() {
 
       plotRef.current = new uPlot(opts, [x, y], containerRef.current);
     } else {
-      /* mises à jour */
+      // Update data
       const u = plotRef.current;
       u.setSize({ width, height: 300 });
       u.setData([x, y]);
@@ -89,9 +107,16 @@ export function UPlotWidget() {
       }
     }
   }, [data, autoZoom]);
-  /* ---------------------------------------------------------------- */
 
-  /* ---------- actions --------------------------------------------- */
+  useEffect(() => {
+    // Theme has changed, uPlot is not reactive to theme changes,
+    // So we invalidate, delete current:
+    if (plotRef.current) {
+      plotRef.current.destroy();
+      plotRef.current = null;
+    }
+  }, [themeContext]);
+
   const resetZoomX = () => {
     const [x] = data;
     if (x.length) plotRef.current?.setScale('x', xyMinMax(x));
@@ -110,9 +135,7 @@ export function UPlotWidget() {
     const range = max - min;
     plotRef.current.setScale('x', [min + range * 0.1, max - range * 0.1]);
   };
-  /* ---------------------------------------------------------------- */
 
-  /* ---------- square button comp ---------------------------------- */
   const Btn = ({
     onClick,
     title,
@@ -130,15 +153,11 @@ export function UPlotWidget() {
       {children}
     </button>
   );
-  /* ---------------------------------------------------------------- */
-
   return (
-    <div className="flex h-full">
-      {/* plot */}
+    <div className="flex h-full ">
       <div ref={containerRef} className="flex-1 h-full w-full" />
 
-      {/* toolbar */}
-      <div className="flex flex-col gap-2 p-2 bg-gray-800 text-white">
+      <div className="flex flex-col gap-2 p-2 bg-background text-white">
         <button
           onClick={() => setIsRunning(r => !r)}
           title="Play / Pause"

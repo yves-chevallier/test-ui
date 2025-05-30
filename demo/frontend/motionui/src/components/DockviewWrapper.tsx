@@ -1,18 +1,33 @@
-import {
-  DockviewReact,
-  DockviewApi,
-  type PanelApi,
-  type IDockviewPanelHeaderProps,
-} from 'dockview';
-import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { DockviewReact, DockviewApi, type IDockviewPanelHeaderProps } from 'dockview';
+import { useEffect, useRef } from 'react';
 import { useDockview } from '@/context/DockviewProvider';
 import { widgetList } from '@/widgets';
 import { CustomTab } from './CustomTab';
-import type { WidgetMeta } from '@/widgets/WidgetBase';
+import type { WidgetMeta, WidgetComponent } from '@/widgets/WidgetBase';
+
+function wrapWithLifecycle(Component: WidgetComponent): React.FC {
+  return () => {
+    const lifecycleApi = useRef<{
+      onMount?: () => void;
+      onUnmount?: () => void;
+    }>({});
+
+    useEffect(() => {
+      const id = requestAnimationFrame(() => {
+        lifecycleApi.current.onMount?.();
+      });
+      return () => {
+        cancelAnimationFrame(id);
+        lifecycleApi.current.onUnmount?.();
+      };
+    }, []);
+    return <Component api={lifecycleApi.current} />;
+  };
+}
 
 const components = widgetList.reduce(
   (acc, widget) => {
-    acc[widget.id] = widget.component;
+    acc[widget.id] = wrapWithLifecycle(widget.component);
     return acc;
   },
   {} as Record<string, React.FC>,
@@ -24,18 +39,13 @@ const tabComponents: Record<string, React.FC<IDockviewPanelHeaderProps>> = {
 
 const MIME = 'application/x-dockview-panel';
 
-type Handle = {
-  getApi: () => DockviewApi | null;
-  addPanel: (widget: WidgetMeta) => void;
-};
-
 export function DockviewWrapper() {
   const apiRef = useRef<DockviewApi | null>(null);
   const { registerAddPanel } = useDockview();
 
   const addPanel = (widget: WidgetMeta) => {
     apiRef.current?.addPanel({
-      id: `${widget.id}-${Date.now()}`,
+      id: widget.uuid!,
       component: widget.id,
       title: widget.title,
       tabComponent: 'custom',
@@ -54,12 +64,12 @@ export function DockviewWrapper() {
     if (!widget) return;
 
     e.api.addPanel({
-      id: `${widget.id}-${Date.now()}`,
+      id: widget.uuid!,
       component: widget.id,
       title: widget.title,
       tabComponent: 'custom',
       params: {
-        widgetId: widget.id, // 👈 utile pour retrouver l'icône dans l'onglet
+        widgetId: widget.id,
       },
     });
   };
