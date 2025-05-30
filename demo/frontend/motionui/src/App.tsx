@@ -13,10 +13,6 @@ export default function App() {
     e.dataTransfer.effectAllowed = 'copy';
   };
 
-  const addPanel = (component: (typeof widgetList)[number]) => {
-    // Cette logique devrait idéalement être déplacée dans le Layout si vous y gardez le ref
-  };
-
   const ws = useWebSocket();
   ws.connect('ws://localhost:8000');
   ws.onMessage(data => console.log('Received:', data));
@@ -26,7 +22,6 @@ export default function App() {
       connected={connected}
       toggleConnection={() => setConnected(c => !c)}
       onDragStart={onDragStart}
-      addPanel={addPanel}
     />
   );
 }

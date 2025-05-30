@@ -1,3 +1,7 @@
+// src/widgets/HelloWidget.tsx
+
+import { defineWidget } from './WidgetBase';
+import { type LucideIcon, Activity } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,9 +15,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 
-import { type LucideIcon, Activity } from 'lucide-react';
-
-export function HelloWidget() {
+export const HelloWidget: React.FC = () => {
   return (
     <div className="p-4 text-white h-full w-full flex flex-col items-center justify-center space-y-4">
       <div>Bonjour depuis React + Dockview</div>
@@ -37,11 +39,11 @@ export function HelloWidget() {
       </AlertDialog>
     </div>
   );
-}
+};
 
-export const widgetMeta = {
+export const widgetMeta = defineWidget({
   id: 'HelloWidget',
   title: 'Status',
   icon: Activity as LucideIcon,
   component: HelloWidget,
-};
+});

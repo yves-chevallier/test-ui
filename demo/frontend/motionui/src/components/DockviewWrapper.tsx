@@ -2,10 +2,13 @@ import { DockviewReact, DockviewApi } from 'dockview';
 import { forwardRef, useImperativeHandle, useRef } from 'react';
 import { widgetList } from '@/widgets';
 
-const components = widgetList.reduce((acc, widget) => {
-  acc[widget.id] = widget.component;
-  return acc;
-}, {});
+const components = widgetList.reduce(
+  (acc, widget) => {
+    acc[widget.id] = widget.component;
+    return acc;
+  },
+  {} as Record<string, React.FC>,
+);
 
 const MIME = 'application/x-dockview-panel';
 
@@ -27,11 +30,13 @@ export const DockviewWrapper = forwardRef<Handle>((_, ref) => {
   };
 
   const onDrop = (e: any) => {
-    const widget = e.nativeEvent.dataTransfer?.getData(MIME);
+    const id = e.nativeEvent.dataTransfer?.getData(MIME);
+    const widget = widgetList.find(w => w.id === id);
     if (!widget) return;
+
     e.api.addPanel({
-      id: `${widget}-${Date.now()}`,
-      component: widget,
+      id: `${widget.id}-${Date.now()}`,
+      component: widget.id,
       title: widget.title,
     });
   };

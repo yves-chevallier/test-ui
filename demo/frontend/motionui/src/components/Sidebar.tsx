@@ -20,8 +20,8 @@ export function SideBar({ onDragStart, addPanel }: SideBarProps) {
             <button
               key={widget.id}
               draggable
-              onDragStart={onDragStart(widget.id)}
-              onClick={() => addPanel(widget.id)}
+              onDragStart={onDragStart(widget)}
+              onClick={() => addPanel(widget)}
               className="w-full flex items-center gap-2 px-3 py-2 rounded hover:bg-muted transition"
             >
               {Icon && <Icon className="w-5 h-5 text-muted-foreground" />}
