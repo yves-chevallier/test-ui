@@ -17,11 +17,13 @@ export interface WidgetMeta {
   icon?: LucideIcon;
   component: WidgetComponent;
   uuid?: string;
+  maxInstances?: number;
 }
 
 export function defineWidget(meta: Omit<WidgetMeta, 'uuid'>): WidgetMeta {
   return {
     ...meta,
     uuid: crypto.randomUUID(),
+    maxInstances: meta.maxInstances ?? 1,
   };
 }

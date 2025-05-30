@@ -44,8 +44,14 @@ export function DockviewWrapper() {
   const { registerAddPanel } = useDockview();
 
   const addPanel = (widget: WidgetMeta) => {
+    if (!widget.maxInstances || widget.maxInstances <= 0) {
+      console.warn(`Cannot add panel for widget ${widget.id}: max instances reached.`);
+      return;
+    }
+    widget.maxInstances += 1;
+
     apiRef.current?.addPanel({
-      id: widget.uuid!,
+      id: `${widget.uuid}-${widget.maxInstances}`,
       component: widget.id,
       title: widget.title,
       tabComponent: 'custom',

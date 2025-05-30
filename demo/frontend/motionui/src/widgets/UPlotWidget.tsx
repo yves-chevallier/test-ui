@@ -4,22 +4,20 @@ import 'uplot/dist/uPlot.min.css';
 import { cssVarToHex } from '@/lib';
 import { Play, Pause, ZoomIn, ArrowDownUp, MoveDiagonal, ScanSearch } from 'lucide-react';
 import { type LucideIcon, LineChart } from 'lucide-react';
-import { type FC } from 'react';
 import { ThemeContext } from '@/theme/ThemeProvider';
+import { defineWidget, type WidgetComponentProps } from './WidgetBase';
 
 const xyMinMax = (arr: number[]) => [Math.min(...arr), Math.max(...arr)] as [number, number];
 
-export function UPlotWidget() {
+export const UPlotWidget: React.FC<WidgetComponentProps> = ({ api }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const plotRef = useRef<uPlot | null>(null);
-
   const [autoZoom, setAutoZoom] = useState(true);
   const [isRunning, setIsRunning] = useState(true);
   const [data, setData] = useState<[number[], number[]]>([[], []]);
+  const themeContext = useContext(ThemeContext);
 
   const MAX_POINTS = 1_000;
-
-  const themeContext = useContext(ThemeContext);
 
   useEffect(() => {
     let start = performance.now();
@@ -28,9 +26,8 @@ export function UPlotWidget() {
     const loop = () => {
       if (!isRunning) return;
 
-      const t = (performance.now() - start) / 1000; // secondes
-      const y = Math.sin(2 * Math.PI * t); // 1 Hz
-
+      const t = (performance.now() - start) / 1000;
+      const y = Math.sin(2 * Math.PI * t);
       setData(([xs, ys]) => [[...xs, t].slice(-MAX_POINTS), [...ys, y].slice(-MAX_POINTS)]);
 
       rafId = requestAnimationFrame(loop);
@@ -40,22 +37,24 @@ export function UPlotWidget() {
     return () => cancelAnimationFrame(rafId);
   }, [isRunning]);
 
+  // ResizeObserver pour création initiale
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const [x, y] = data;
-    const width = containerRef.current.clientWidth;
-    const height = containerRef.current.clientHeight;
+    const container = containerRef.current;
+    let created = false;
 
-    if (!plotRef.current) {
+    const observer = new ResizeObserver(() => {
+      if (plotRef.current || !container.clientWidth || !container.clientHeight || created) return;
+      created = true;
+
       const axisColor = cssVarToHex('--foreground');
       const gridColor = cssVarToHex('--border');
-
-      console.log('width', width, 'height', height, 'data length', x.length);
+      const chartColor = cssVarToHex('--chart-1');
 
       const opts = {
-        width,
-        height: 800,
+        width: container.clientWidth,
+        height: container.clientHeight,
         scales: { x: { time: false }, y: {} },
         axes: [
           {
@@ -69,7 +68,7 @@ export function UPlotWidget() {
             ticks: { stroke: axisColor },
           },
         ],
-        series: [{}, { label: 'Signal', stroke: cssVarToHex('--chart-1'), width: 2 }],
+        series: [{}, { label: 'Signal', stroke: chartColor, width: 2 }],
         plugins: [
           {
             hooks: {
@@ -92,25 +91,33 @@ export function UPlotWidget() {
         ],
       };
 
-      plotRef.current = new uPlot(opts, [x, y], containerRef.current);
-    } else {
-      // Update data
-      const u = plotRef.current;
-      u.setSize({ width, height: 300 });
-      u.setData([x, y]);
+      plotRef.current = new uPlot(opts, [data[0], data[1]], container);
+    });
 
-      if (autoZoom && x.length) {
-        const [xMin, xMax] = xyMinMax(x);
-        const [yMin, yMax] = xyMinMax(y);
-        u.setScale('x', [xMin, xMax]);
-        u.setScale('y', [yMin, yMax]);
-      }
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  // Mise à jour des données
+  useEffect(() => {
+    if (!plotRef.current) return;
+    const u = plotRef.current;
+
+    const width = containerRef.current?.clientWidth || 300;
+    const height = containerRef.current?.clientHeight || 300;
+    u.setSize({ width, height });
+    u.setData(data);
+
+    if (autoZoom && data[0].length) {
+      const [xMin, xMax] = xyMinMax(data[0]);
+      const [yMin, yMax] = xyMinMax(data[1]);
+      u.setScale('x', [xMin, xMax]);
+      u.setScale('y', [yMin, yMax]);
     }
   }, [data, autoZoom]);
 
+  // Invalidation sur changement de thème
   useEffect(() => {
-    // Theme has changed, uPlot is not reactive to theme changes,
-    // So we invalidate, delete current:
     if (plotRef.current) {
       plotRef.current.destroy();
       plotRef.current = null;
@@ -136,27 +143,9 @@ export function UPlotWidget() {
     plotRef.current.setScale('x', [min + range * 0.1, max - range * 0.1]);
   };
 
-  const Btn = ({
-    onClick,
-    title,
-    children,
-  }: {
-    onClick: () => void;
-    title: string;
-    children: React.ReactNode;
-  }) => (
-    <button
-      onClick={onClick}
-      title={title}
-      className="w-8 h-8 flex items-center justify-center rounded bg-gray-700 hover:bg-gray-600"
-    >
-      {children}
-    </button>
-  );
   return (
-    <div className="flex h-full ">
+    <div className="flex h-full">
       <div ref={containerRef} className="flex-1 h-full w-full" />
-
       <div className="flex flex-col gap-2 p-2 bg-background text-white">
         <button
           onClick={() => setIsRunning(r => !r)}
@@ -200,11 +189,12 @@ export function UPlotWidget() {
       </div>
     </div>
   );
-}
+};
 
-export const widgetMeta = {
+export const widgetMeta = defineWidget({
   id: 'UPlotWidget',
   title: 'Scope',
   icon: LineChart as LucideIcon,
   component: UPlotWidget,
-};
+  maxInstances: 4,
+});
