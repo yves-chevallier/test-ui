@@ -2,20 +2,17 @@ import { widgetList } from '@/widgets';
 import { CheckCircle, XCircle } from 'lucide-react';
 
 interface SideBarProps {
-  sidebarOpen: boolean;
   onDragStart: (comp: string) => (e: React.DragEvent) => void;
   addPanel: (component: string) => void;
 }
 
-export function SideBar({ sidebarOpen, onDragStart, addPanel }: SideBarProps) {
-  const isOperational = true; // exemple de bit pour l'état opérationnel
-  const fault = true; // exemple de bit pour l'état de défaut
+export function SideBar({ onDragStart, addPanel }: SideBarProps) {
+  const isOperational = true;
+  const fault = true;
 
   return (
-    <aside
-      className={`bg-background border-r border-border transition-all flex flex-col
-        ${sidebarOpen ? 'w-64' : 'w-0'} overflow-hidden`}
-    >
+    <aside className="h-full w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col">
+      {/* Contenu scrollable */}
       <nav className="p-4 space-y-2 flex-1 overflow-auto">
         {widgetList.map(widget => {
           const Icon = widget.icon;
@@ -34,8 +31,8 @@ export function SideBar({ sidebarOpen, onDragStart, addPanel }: SideBarProps) {
         })}
       </nav>
 
-      {/* Statuts CANopen fixés en bas */}
-      <div className="border-t border-border p-3">
+      {/* Statuts collés en bas */}
+      <div className="border-t border-sidebar-border p-3">
         <ul className="divide-y divide-border">
           <li className="flex items-center gap-2 text-sm text-foreground py-1">
             {isOperational ? (

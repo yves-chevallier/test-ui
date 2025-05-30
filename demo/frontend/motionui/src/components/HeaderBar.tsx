@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Menu, Moon, Sun } from 'lucide-react';
 import { LogoHEIG } from './LogoHEIG';
+import { useTheme } from '@/theme/useTheme';
 
 interface HeaderBarProps {
   sidebarOpen: boolean;
@@ -17,23 +18,7 @@ export function HeaderBar({
 }: HeaderBarProps) {
   const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
 
-  useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setIsDark(document.documentElement.classList.contains('dark'));
-    });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class'],
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  const toggleTheme = () => {
-    document.documentElement.classList.toggle('dark');
-    // inutile de faire `setIsDark` ici, l'observer s'en charge
-  };
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="flex items-center px-6 py-3 bg-background shadow-md">
@@ -62,7 +47,7 @@ export function HeaderBar({
         <button
           onClick={toggleTheme}
           aria-label="Toggle theme"
-          className="rounded-md p-2 hover:bg-muted transition"
+          className="rounded-md p-2 transition hover:bg-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           {isDark ? (
             <Sun className="w-5 h-5 text-foreground" />
