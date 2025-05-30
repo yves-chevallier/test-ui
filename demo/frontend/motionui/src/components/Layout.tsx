@@ -34,15 +34,15 @@ export function Layout({ connected, toggleConnection, onDragStart }: LayoutProps
         toggleConnection={toggleConnection}
       />
 
-      <div className="flex flex-1 relative overflow-hidden">
+      <div className="flex flex-1 overflow-hidden">
         <div
           className={`
-            absolute top-0 left-0 bottom-0 z-10 w-64
-            transition-transform duration-300 ease-in-out
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          `}
+      transition-all duration-300 ease-in-out
+      ${sidebarOpen ? 'w-64' : 'w-0'}
+      overflow-hidden
+    `}
         >
-          <SideBar onDragStart={onDragStart} addPanel={addPanel} />
+          <SideBar onDragStart={onDragStart} addPanel={addPanel} isVisible={sidebarOpen} />
         </div>
 
         <main className="flex-1 bg-background overflow-hidden">
