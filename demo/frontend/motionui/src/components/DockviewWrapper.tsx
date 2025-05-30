@@ -1,6 +1,14 @@
-import { DockviewReact, DockviewApi } from 'dockview';
+import {
+  DockviewReact,
+  DockviewApi,
+  type PanelApi,
+  type IDockviewPanelHeaderProps,
+} from 'dockview';
 import { forwardRef, useImperativeHandle, useRef } from 'react';
+import { useDockview } from '@/context/DockviewProvider';
 import { widgetList } from '@/widgets';
+import { CustomTab } from './CustomTab';
+import type { WidgetMeta } from '@/widgets/WidgetBase';
 
 const components = widgetList.reduce(
   (acc, widget) => {
@@ -10,23 +18,34 @@ const components = widgetList.reduce(
   {} as Record<string, React.FC>,
 );
 
+const tabComponents: Record<string, React.FC<IDockviewPanelHeaderProps>> = {
+  custom: CustomTab,
+};
+
 const MIME = 'application/x-dockview-panel';
 
-type Handle = { getApi: () => DockviewApi | null };
+type Handle = {
+  getApi: () => DockviewApi | null;
+  addPanel: (widget: WidgetMeta) => void;
+};
 
-export const DockviewWrapper = forwardRef<Handle>((_, ref) => {
+export function DockviewWrapper() {
   const apiRef = useRef<DockviewApi | null>(null);
+  const { registerAddPanel } = useDockview();
 
-  useImperativeHandle(ref, () => ({ getApi: () => apiRef.current }));
+  const addPanel = (widget: WidgetMeta) => {
+    apiRef.current?.addPanel({
+      id: `${widget.id}-${Date.now()}`,
+      component: widget.id,
+      title: widget.title,
+      tabComponent: 'custom',
+      params: { widgetId: widget.id },
+    });
+  };
 
   const onReady = ({ api }: { api: DockviewApi }) => {
     apiRef.current = api;
-  };
-
-  const allowDrop = (e: any) => {
-    if (e.nativeEvent.dataTransfer?.types.includes(MIME)) {
-      e.accept();
-    }
+    registerAddPanel(addPanel);
   };
 
   const onDrop = (e: any) => {
@@ -38,6 +57,10 @@ export const DockviewWrapper = forwardRef<Handle>((_, ref) => {
       id: `${widget.id}-${Date.now()}`,
       component: widget.id,
       title: widget.title,
+      tabComponent: 'custom',
+      params: {
+        widgetId: widget.id, // 👈 utile pour retrouver l'icône dans l'onglet
+      },
     });
   };
 
@@ -45,10 +68,9 @@ export const DockviewWrapper = forwardRef<Handle>((_, ref) => {
     <DockviewReact
       className="w-full h-full dockview-theme-tailwind"
       components={components}
+      tabComponents={tabComponents}
       onReady={onReady}
-      showDndOverlay={allowDrop}
       onDidDrop={onDrop}
-      disableAutoTheme
     />
   );
-});
+}

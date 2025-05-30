@@ -4,6 +4,7 @@ import { SideBar } from './Sidebar';
 import { DockviewWrapper } from './DockviewWrapper';
 import { widgetList } from '@/widgets';
 import { DockviewApi } from 'dockview';
+import { DockviewProvider } from '@/context/DockviewProvider';
 
 interface LayoutProps {
   connected: boolean;
@@ -13,17 +14,6 @@ interface LayoutProps {
 
 export function Layout({ connected, toggleConnection, onDragStart }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const dockviewRef = useRef<{ getApi: () => DockviewApi | null }>(null);
-
-  const addPanel = (component: (typeof widgetList)[number]) => {
-    const api = dockviewRef.current?.getApi();
-    if (!api) return;
-    api.addPanel({
-      id: `${component.id}-${Date.now()}`,
-      component: component.id,
-      title: component.title,
-    });
-  };
 
   return (
     <div className="flex flex-col h-screen w-screen bg-background text-white">
@@ -35,19 +25,21 @@ export function Layout({ connected, toggleConnection, onDragStart }: LayoutProps
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <div
-          className={`
+        <DockviewProvider>
+          <div
+            className={`
       transition-all duration-300 ease-in-out
       ${sidebarOpen ? 'w-64' : 'w-0'}
       overflow-hidden
     `}
-        >
-          <SideBar onDragStart={onDragStart} addPanel={addPanel} isVisible={sidebarOpen} />
-        </div>
+          >
+            <SideBar onDragStart={onDragStart} />
+          </div>
 
-        <main className="flex-1 bg-background overflow-hidden">
-          <DockviewWrapper ref={dockviewRef} />
-        </main>
+          <main className="flex-1 bg-background overflow-hidden">
+            <DockviewWrapper />
+          </main>
+        </DockviewProvider>
       </div>
     </div>
   );

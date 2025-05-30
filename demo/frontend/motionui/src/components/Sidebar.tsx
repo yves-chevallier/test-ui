@@ -1,15 +1,15 @@
 import { widgetList } from '@/widgets';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { useDockview } from '@/context/DockviewProvider';
 
 interface SideBarProps {
   onDragStart: (comp: string) => (e: React.DragEvent) => void;
-  addPanel: (component: string) => void;
 }
 
-export function SideBar({ onDragStart, addPanel }: SideBarProps) {
+export function SideBar({ onDragStart }: SideBarProps) {
   const isOperational = true;
   const fault = true;
-
+  const { addWidget } = useDockview();
   return (
     <aside className="h-full w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col">
       {/* Contenu scrollable */}
@@ -21,7 +21,7 @@ export function SideBar({ onDragStart, addPanel }: SideBarProps) {
               key={widget.id}
               draggable
               onDragStart={onDragStart(widget)}
-              onClick={() => addPanel(widget)}
+              onClick={() => addWidget(widget)}
               className="w-full flex items-center gap-2 px-3 py-2 rounded hover:bg-muted transition"
             >
               {Icon && <Icon className="w-5 h-5 text-muted-foreground" />}
